@@ -64,7 +64,7 @@ public class ScrollingActivity extends AppCompatActivity {
             }
         });
 
-        String url = "https://api.foursquare.com/v2/venues/"+ids.get(position)+"?client_id="+CLIENT_ID+"&client_secret="+CLIENT_SECRET+"&v=20130815";
+        final String url = "https://api.foursquare.com/v2/venues/"+ids.get(position)+"?client_id="+CLIENT_ID+"&client_secret="+CLIENT_SECRET+"&v=20130815";
 
         RequestQueue queue = Volley.newRequestQueue(getApplicationContext());
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
@@ -73,29 +73,32 @@ public class ScrollingActivity extends AppCompatActivity {
                     @Override
                     public void onResponse(String response) {
                         try {
+                            Log.d("URL DETAIL",url);
                             JSONObject jObj = new JSONObject(response);
                             JSONObject temp2 = jObj.getJSONObject("response").getJSONObject("venue").getJSONObject("photos");
                             Log.d("Photos",temp2.toString());
                             if(temp2.getInt("count") == 0){
-                                //ivPhoto.setImageResource(R.drawable.default);
                                 ivPhoto.setImageResource(R.drawable.c);
                                 tvAddress.setText("Information Not Available");
                                 tvNum.setText("Information Not Available");
                             }
                             else{
+
+                                //JSONArray jAr = temp2.getJSONArray("groups").getJSONObject(0);
+                                String prefix = temp2.getJSONArray("groups").getJSONObject(0).getJSONArray("items").getJSONObject(0).getString("prefix");
+                                String suffix = temp2.getJSONArray("groups").getJSONObject(0).getJSONArray("items").getJSONObject(0).getString("suffix");
+                                String width = temp2.getJSONArray("groups").getJSONObject(0).getJSONArray("items").getJSONObject(0).getString("height");
+                                Log.d("Url:",prefix+"width"+width+suffix);
+                                String url = prefix+"width"+width+suffix;
+                                Picasso.with(getApplicationContext()).load(url).skipMemoryCache().fit().into(ivPhoto);
+
                                 Log.d("JSON:",jObj.toString());
                                 JSONObject temp = jObj.getJSONObject("response").getJSONObject("venue").getJSONObject("location");
                                 //JSONObject temp2 = jObj.getJSONObject("response").getJSONObject("venue").getJSONObject("contact");
                                 Log.d("RESPONSE",temp.toString());
-                                tvAddress.setText(temp.getString("address"));
-                                tvNum.setText(temp.getString("city"));
-                                //JSONArray jAr = temp2.getJSONArray("groups").getJSONObject(0);
-                                String prefix = temp2.getJSONArray("groups").getJSONObject(0).getJSONArray("items").getJSONObject(0).getString("prefix");
-                                String suffix = temp2.getJSONArray("groups").getJSONObject(0).getJSONArray("items").getJSONObject(0).getString("suffix");
-                                String width = temp2.getJSONArray("groups").getJSONObject(0).getJSONArray("items").getJSONObject(0).getString("width");
-                                Log.d("Url:",prefix+"width"+width+suffix);
-                                String url = prefix+"width"+width+suffix;
-                                Picasso.with(getApplicationContext()).load(url).skipMemoryCache().fit().into(ivPhoto);
+                                tvAddress.setText(temp.getString("cc"));
+                                JSONObject tem = jObj.getJSONObject("response").getJSONObject("venue").getJSONObject("hereNow");
+                                tvNum.setText("Here Now: "+tem.getString("count"));
                             }
 
                         } catch (Throwable t) {

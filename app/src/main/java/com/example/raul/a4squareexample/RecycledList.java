@@ -6,7 +6,6 @@ import android.location.Location;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -27,6 +26,7 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.gson.Gson;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -45,11 +45,10 @@ public class RecycledList extends AppCompatActivity implements GoogleApiClient.C
     private  TextView tvLon;
     private RecyclerView rv;
     private LinearLayoutManager linearLayoutManager;
-    private DummyData dd;
-    public ArrayList<String> myArray = new ArrayList<String>();
-    public ArrayList<String> myArray2 = new ArrayList<String>();
-    public ArrayList<String> myArray3 = new ArrayList<String>();
-    public ArrayList<String> myArray4 = new ArrayList<String>();
+    private ArrayList<String> myArray = new ArrayList<>();
+    private ArrayList<String> myArray2 = new ArrayList<>();
+    private ArrayList<String> myArray3 = new ArrayList<>();
+    private ArrayList<String> myArray4 = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -163,13 +162,16 @@ public class RecycledList extends AppCompatActivity implements GoogleApiClient.C
         linearLayoutManager = new LinearLayoutManager(this);
         rv.setLayoutManager(linearLayoutManager);
 
-        String url = "https://api.foursquare.com/v2/venues/search?client_id="+CLIENT_ID+"&client_secret="+CLIENT_SECRET+"&v=20130815&ll="+String.valueOf(location.getLatitude())+","+String.valueOf(location.getLongitude())+"&limit=30";
+        final String url = "https://api.foursquare.com/v2/venues/search?client_id="+CLIENT_ID+"&client_secret="+CLIENT_SECRET+"&v=20130815&ll="+String.valueOf(location.getLatitude())+","+String.valueOf(location.getLongitude())+"&limit=25";
+        //final String url = "https://api.foursquare.com/v2/venues/search?client_id="+CLIENT_ID+"&client_secret="+CLIENT_SECRET+"&v=20130815&ll=19.268572,-99.706762&limit=50";
+
         RequestQueue queue = Volley.newRequestQueue(getApplicationContext());
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
                         try {
+                            Log.d("URL",url);
                             JSONObject jObj = new JSONObject(response);
                             JSONObject temp = jObj.getJSONObject("response");
                             JSONArray jArray = temp.getJSONArray("venues");
@@ -181,24 +183,43 @@ public class RecycledList extends AppCompatActivity implements GoogleApiClient.C
                                 JSONObject temp3 = temp2.getJSONObject("stats");
 
                                 JSONArray jsonArray2 = temp2.getJSONArray("categories");
-                                JSONObject icon = jsonArray2.getJSONObject(0).getJSONObject("icon");
 
-                                Log.d("ICON:",icon.toString());
-                                String photo = icon.getString("prefix")+"bg_88"+icon.getString("suffix");
-                                Log.d("PHOTOURL:",photo);
-                                String id = temp2.get("id").toString();
-                                String nameTemp = temp2.get("name").toString();
-                                String idTemp = temp2.get("id").toString();
-                                String checkins  = temp3.get("checkinsCount").toString();
+                                if(jsonArray2.length()==0){
+                                    String photo = "https://ss3.4sqi.net/img/categories_v2/building/default_bg_88.png";
+                                    Log.d("PHOTOURL:",photo);
+                                    String id = temp2.get("id").toString();
+                                    String nameTemp = temp2.get("name").toString();
+                                    String idTemp = temp2.get("id").toString();
+                                    String checkins  = temp3.get("checkinsCount").toString();
 
-                                Log.d("Name:",nameTemp );
-                                Log.d("ID: ",idTemp);
+                                    Log.d("Name:",nameTemp );
+                                    Log.d("ID: ",idTemp);
+                                    myArray2.add(nameTemp);
+                                    myArray.add(checkins);
+                                    myArray3.add(photo);
+                                    myArray4.add(id);
+                                }
+                                else{
+                                    JSONObject icon = jsonArray2.getJSONObject(0).getJSONObject("icon");
+
+                                    Log.d("ICON:",icon.toString());
+                                    String photo = icon.getString("prefix")+"bg_88"+icon.getString("suffix");
+                                    Log.d("PHOTOURL:",photo);
+                                    String id = temp2.get("id").toString();
+                                    String nameTemp = temp2.get("name").toString();
+                                    String idTemp = temp2.get("id").toString();
+                                    String checkins  = temp3.get("checkinsCount").toString();
+
+                                    Log.d("Name:",nameTemp );
+                                    Log.d("ID: ",idTemp);
+                                    myArray2.add(nameTemp);
+                                    myArray.add(checkins);
+                                    myArray3.add(photo);
+                                    myArray4.add(id);
+                                }
 
 
-                                myArray2.add(nameTemp);
-                                myArray.add(checkins);
-                                myArray3.add(photo);
-                                myArray4.add(id);
+
 
                             }
                             RecycleViewCustomAdapter adapter = new RecycleViewCustomAdapter(getApplicationContext(),myArray2,myArray,myArray3, new com.example.raul.a4squareexample.RecyclerViewClickListener() {
